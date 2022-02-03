@@ -130,7 +130,7 @@ exports.handler = async (event) => {
 
     try {
         const inputPath = `s3://${event.srcBucket}/${event.srcVideo}`;
-        const outputPath = `s3://${event.destBucket}/${event.guid}`;
+        const outputPath = `s3://${event.destBucket}/${event.srcVideo}`;
 
         // Baseline for the job parameters
         let job = {

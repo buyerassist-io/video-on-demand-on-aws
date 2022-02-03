@@ -109,6 +109,9 @@ Metadata:
 Mappings:
   SourceCode:
     General:
+      S3Bucket: "solutions"
+      KeyPrefix: "video-on-demand-on-aws/v5.3.1"
+    Buyerassist:
       S3Bucket: "%%BUCKET_NAME%%"
       KeyPrefix: "%%SOLUTION_NAME%%/%%VERSION%%"
   AnonymousData:
@@ -1026,8 +1029,8 @@ Resources:
       Handler: index.handler
       Role: !GetAtt EncodeRole.Arn
       Code:
-        S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]]
-        S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"], "encode.zip"]]
+        S3Bucket: !FindInMap ["SourceCode", "Buyerassist", "S3Bucket"]
+        S3Key: !Join [ "/", [ !FindInMap ["SourceCode", "Buyerassist", "KeyPrefix"], "encode.zip", ]]
       Runtime: nodejs12.x
       Timeout: 120
       Environment:
