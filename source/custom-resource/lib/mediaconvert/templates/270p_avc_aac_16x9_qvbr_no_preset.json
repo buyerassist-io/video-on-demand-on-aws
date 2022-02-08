@@ -1,7 +1,7 @@
 {
     "Category": "VOD",
     "Description": "video on demand on aws",
-    "Name": "_Ott_720p_Avc_Aac_16x9_qvbr_no_preset",
+    "Name": "_Ott_270p_Avc_Aac_16x9_qvbr_no_preset",
     "Queue": "Default",
     "Settings": {
         "OutputGroups": [
@@ -42,9 +42,9 @@
                             }
                         },
                         "VideoDescription": {
-                            "Width": 1280,
+                            "Width": 480,
                             "ScalingBehavior": "DEFAULT",
-                            "Height": 720,
+                            "Height": 270,
                             "TimecodeInsertion": "DISABLED",
                             "AntiAlias": "ENABLED",
                             "Sharpness": 100,
@@ -60,8 +60,8 @@
                                     "GopSize": 3,
                                     "Slices": 1,
                                     "GopBReference": "ENABLED",
-                                    "HrdBufferSize": 15000000,
-                                    "MaxBitrate": 6000000,
+                                    "HrdBufferSize": 1000000,
+                                    "MaxBitrate": 400000,
                                     "SlowPal": "DISABLED",
                                     "ParDenominator": 1,
                                     "SpatialAdaptiveQuantization": "ENABLED",
@@ -71,12 +71,12 @@
                                     "FramerateControl": "INITIALIZE_FROM_SOURCE",
                                     "RateControlMode": "QVBR",
                                     "QvbrSettings": {
-                                        "QvbrQualityLevel": 8
+                                        "QvbrQualityLevel": 7
                                     },
                                     "CodecProfile": "HIGH",
                                     "Telecine": "NONE",
                                     "MinIInterval": 0,
-                                    "AdaptiveQuantization": "HIGH",
+                                    "AdaptiveQuantization": "MEDIUM",
                                     "FieldEncoding": "PAFF",
                                     "SceneChangeDetect": "ENABLED",
                                     "QualityTuningLevel": "SINGLE_PASS_HQ",
@@ -102,7 +102,7 @@
                                     "Codec": "AAC",
                                     "AacSettings": {
                                         "AudioDescriptionBroadcasterMix": "NORMAL",
-                                        "Bitrate": 96000,
+                                        "Bitrate": 64000,
                                         "RateControlMode": "CBR",
                                         "CodecProfile": "HEV1",
                                         "CodingMode": "CODING_MODE_2_0",
@@ -115,7 +115,7 @@
                                 "AudioType": 0
                             }
                         ],
-                        "NameModifier": "_Ott_Hls_Ts_Avc_Aac_16x9_1280x720p_6.0Mbps_qvbr"
+                        "NameModifier": "_Ott_Hls_Ts_Avc_Aac_16x9_480x270p_0.4Mbps_qvbr"
                     }
                 ],
                 "OutputGroupSettings": {
@@ -168,7 +168,7 @@
                                     "TemporalAdaptiveQuantization": "ENABLED",
                                     "FlickerAdaptiveQuantization": "DISABLED",
                                     "EntropyEncoding": "CABAC",
-                                    "Bitrate": 6000000,
+                                    "Bitrate": 400000,
                                     "FramerateControl": "SPECIFIED",
                                     "RateControlMode": "CBR",
                                     "CodecProfile": "HIGH",
@@ -185,7 +185,7 @@
                                     "ParControl": "INITIALIZE_FROM_SOURCE",
                                     "NumberBFramesBetweenReferenceFrames": 5,
                                     "RepeatPps": "DISABLED",
-                                    "HrdBufferSize": 15000000,
+                                    "HrdBufferSize": 1000000,
                                     "HrdBufferInitialFillPercentage": 90,
                                     "FramerateNumerator": 24000,
                                     "FramerateDenominator": 1001
@@ -195,8 +195,8 @@
                             "DropFrameTimecode": "ENABLED",
                             "RespondToAfd": "NONE",
                             "ColorMetadata": "INSERT",
-                            "Width": 1280,
-                            "Height": 720
+                            "Width": 480,
+                            "Height": 270 
                         },
                         "AudioDescriptions": [
                             {

@@ -42,7 +42,7 @@ exports.handler = async (event) => {
         event.srcWidth = mediaInfo.video[0].width;
 
         // Determine encoding by matching the srcHeight to the nearest profile.
-        const profiles = [2160, 1080, 720];
+        const profiles = [2160, 1080, 720, 540, 360, 270];
         let lastProfile;
         let encodeProfile;
 
@@ -63,7 +63,10 @@ exports.handler = async (event) => {
             const ratios = {
                 '2160': 3840,
                 '1080': 1920,
-                '720': 1280
+                '720': 1280,
+                '540': 960,
+                '360': 640,
+                '270': 480
             };
 
             event.frameCaptureHeight = encodeProfile;
@@ -75,9 +78,12 @@ exports.handler = async (event) => {
         if (!event.jobTemplate) {
             // Match the jobTemplate to the encoding Profile.
             const jobTemplates = {
-                '2160': event.jobTemplate_2160p,
-                '1080': event.jobTemplate_1080p,
-                '720': event.jobTemplate_720p
+                '2160': event.jobTemplate_720p,
+                '1080': event.jobTemplate_720p,
+                '720': event.jobTemplate_720p,
+                '540': event.jobTemplate_540p,
+                '360': event.jobTemplate_360p,
+                '270': event.jobTemplate_270p
             };
 
             event.jobTemplate = jobTemplates[encodeProfile];

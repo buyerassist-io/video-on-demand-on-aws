@@ -48,6 +48,9 @@ exports.handler = async (event) => {
             delete msg.jobTemplate_2160p;
             delete msg.jobTemplate_1080p;
             delete msg.jobTemplate_720p;
+            delete msg.jobTemplate_540p;
+            delete msg.jobTemplate_360p;
+            delete msg.jobTemplate_270p;
             delete msg.encodingJob;
             delete msg.encodingOutput;
 

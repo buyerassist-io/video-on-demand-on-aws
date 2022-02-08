@@ -607,8 +607,8 @@ Resources:
       Handler: index.handler
       Role: !GetAtt CustomResourceRole.Arn
       Code:
-        S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]]
-        S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"], "custom-resource.zip"]]
+        S3Bucket: !FindInMap ["SourceCode", "Buyerassist", "S3Bucket"]
+        S3Key: !Join [ "/", [ !FindInMap ["SourceCode", "Buyerassist", "KeyPrefix"], "custom-resource.zip"]]
       Runtime: nodejs12.x
       Timeout: 180
       Environment:
@@ -767,6 +767,9 @@ Resources:
               - IsMediaPackageEnabled
               - !Sub "${AWS::StackName}_Ott_720p_Avc_Aac_16x9_mvod_no_preset"
               - !Sub "${AWS::StackName}_Ott_720p_Avc_Aac_16x9_qvbr_no_preset"
+          MediaConvert_Template_540p: !Sub "${AWS::StackName}_Ott_540p_Avc_Aac_16x9_qvbr_no_preset"
+          MediaConvert_Template_360p: !Sub "${AWS::StackName}_Ott_360p_Avc_Aac_16x9_qvbr_no_preset"
+          MediaConvert_Template_270p: !Sub "${AWS::StackName}_Ott_270p_Avc_Aac_16x9_qvbr_no_preset"
           CloudFront: !GetAtt CloudFront.DomainName
           EnableMediaPackage: !Ref EnableMediaPackage
           InputRotate: DEGREE_0
@@ -958,8 +961,8 @@ Resources:
       Handler: index.handler
       Role: !GetAtt ProfilerRole.Arn
       Code:
-        S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]]
-        S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"], "profiler.zip"]]
+        S3Bucket: !FindInMap ["SourceCode", "Buyerassist", "S3Bucket"]
+        S3Key: !Join [ "/", [ !FindInMap ["SourceCode", "Buyerassist", "KeyPrefix"], "profiler.zip"]]
       Runtime: nodejs12.x
       Timeout: 120
       Environment:
@@ -1548,6 +1551,21 @@ Resources:
                   "Variable": "$.encodingProfile ",
                   "NumericEquals": 720,
                   "Next": "jobTemplate 720p"
+                },
+                {
+                  "Variable": "$.encodingProfile ",
+                  "NumericEquals": 540,
+                  "Next": "jobTemplate 540p"
+                },
+                {
+                  "Variable": "$.encodingProfile ",
+                  "NumericEquals": 360,
+                  "Next": "jobTemplate 360p"
+                },
+                {
+                  "Variable": "$.encodingProfile ",
+                  "NumericEquals": 270,
+                  "Next": "jobTemplate 270p"
                 }
               ]
             },
@@ -1560,6 +1578,18 @@ Resources:
               "Next": "Accelerated Transcoding Check"
             },
             "jobTemplate 720p": {
+              "Type": "Pass",
+              "Next": "Accelerated Transcoding Check"
+            },
+            "jobTemplate 540p": {
+              "Type": "Pass",
+              "Next": "Accelerated Transcoding Check"
+            },
+            "jobTemplate 360p": {
+              "Type": "Pass",
+              "Next": "Accelerated Transcoding Check"
+            },
+            "jobTemplate 270p": {
               "Type": "Pass",
               "Next": "Accelerated Transcoding Check"
             },

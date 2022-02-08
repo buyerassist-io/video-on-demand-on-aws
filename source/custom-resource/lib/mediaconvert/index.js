@@ -140,6 +140,18 @@ const qvbrTemplatesNoPreset = [
     {
         name: '_Ott_720p_Avc_Aac_16x9_qvbr_no_preset',
         file: './lib/mediaconvert/templates/720p_avc_aac_16x9_qvbr_no_preset.json'
+    },
+    {
+        name: '_Ott_540p_Avc_Aac_16x9_qvbr_no_preset',
+        file: './lib/mediaconvert/templates/540p_avc_aac_16x9_qvbr_no_preset.json'
+    },
+    {
+        name: '_Ott_360p_Avc_Aac_16x9_qvbr_no_preset',
+        file: './lib/mediaconvert/templates/360p_avc_aac_16x9_qvbr_no_preset.json'
+    },
+    {
+        name: '_Ott_270p_Avc_Aac_16x9_qvbr_no_preset',
+        file: './lib/mediaconvert/templates/270p_avc_aac_16x9_qvbr_no_preset.json'
     }
 ];
 
