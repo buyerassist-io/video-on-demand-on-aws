@@ -1,7 +1,6 @@
 Description: "(SO0021) - Video On Demand workflow with AWS Step Functions, MediaConvert, MediaPackage, S3, CloudFront and DynamoDB. Version %%VERSION%%"
 
 Parameters:
-
   AdminEmail:
     Description: Email address for SNS notifications (subscribed users will receive ingest, publishing, and error notifications)
     Type: String
@@ -14,6 +13,14 @@ Parameters:
     AllowedValues:
       - VideoFile
       - MetadataFile
+
+  SourceBucketStack: 
+    Description: Stack for source bucket
+    Type: String
+
+  DestinationBucketStack: 
+    Description: stack for destination bucket and cloudfront
+    Type: String
 
   Glacier:
     Description: If enabled, source assets will be tagged for archiving to Glacier or Glacier Deep Archive once the workflow is complete
@@ -153,7 +160,8 @@ Resources:
                   - s3:PutObject
                   - s3:PutObjectAcl
                 Resource:
-                  - !GetAtt Source.Arn
+                  - Fn::ImportValue: 
+                      !Sub "${SourceBucketStack}-BucketArn"
               - Effect: Allow
                 Action:
                   - mediaconvert:CreatePreset
@@ -185,12 +193,6 @@ Resources:
                   - mediapackage-vod:ListPackagingConfigurations
                   - mediapackage-vod:ListPackagingGroups
                 Resource: "*"
-              - Effect: Allow
-                Action:
-                  - cloudfront:GetDistributionConfig
-                  - cloudfront:UpdateDistribution
-                Resource:
-                  - !Sub "arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${CloudFront}"
     Metadata:
       cfn_nag:
         rules_to_suppress:
@@ -247,8 +249,16 @@ Resources:
                   - s3:GetObject
                   - s3:PutObject
                 Resource:
-                  - !Sub "${Source.Arn}/*"
-                  - !Sub "${Destination.Arn}/*"
+                  - Fn::Sub:  
+                    - "${SourceBucketArn}/*"
+                    - SourceBucketArn: 
+                        Fn::ImportValue: 
+                          !Sub "${SourceBucketStack}-BucketArn"
+                  - Fn::Sub:  
+                    - "${DestinationBucketArn}/*"
+                    - DestinationBucketArn: 
+                        Fn::ImportValue: 
+                          !Sub "${DestinationBucketStack}-BucketArn"
               - Effect: Allow
                 Action:
                   - execute-api:Invoke
@@ -282,8 +292,16 @@ Resources:
                   - s3:GetBucketLocation
                   - s3:GetBucketRequestPayment
                 Resource:
-                  - !Sub "${Destination.Arn}"
-                  - !Sub "${Destination.Arn}/*"
+                  - Fn::Sub:  
+                    - "${DestinationBucketArn}"
+                    - DestinationBucketArn: 
+                        Fn::ImportValue: 
+                          !Sub "${DestinationBucketStack}-BucketArn"
+                  - Fn::Sub:  
+                    - "${DestinationBucketArn}/*"
+                    - DestinationBucketArn: 
+                        Fn::ImportValue: 
+                          !Sub "${DestinationBucketStack}-BucketArn"
     Metadata:
       cfn_nag:
         rules_to_suppress:
@@ -313,19 +331,6 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt EncodeCompleteRule.Arn
-
-  DestBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref Destination
-      PolicyDocument:
-        Statement:
-          - Effect: Allow
-            Action:
-              - s3:GetObject
-            Resource: !Sub "arn:${AWS::Partition}:s3:::${Destination}/*"
-            Principal:
-              CanonicalUser: !GetAtt DestinationOriginAccessIdentity.S3CanonicalUserId
 
   EncodeCompleteRule:
     Type: AWS::Events::Rule
@@ -399,94 +404,6 @@ Resources:
           - id: W74
             reason: " The DynamoDB table is configured to use the default encryption"
 
-  Source:
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Type: AWS::S3::Bucket
-    Properties:
-      LoggingConfiguration:
-        DestinationBucketName: !Ref Logs
-        LogFilePrefix: s3-access/
-      LifecycleConfiguration:
-        Rules:
-          - Id: !Sub "${AWS::StackName}-source-archive"
-            TagFilters:
-              - Key: !Ref AWS::StackName
-                Value: GLACIER
-            Status: Enabled
-            Transitions:
-            - TransitionInDays: 1
-              StorageClass: GLACIER
-          - Id: !Sub "${AWS::StackName}-source-deep-archive"
-            TagFilters:
-              - Key: !Ref AWS::StackName
-                Value: DEEP_ARCHIVE
-            Status: Enabled
-            Transitions:
-            - TransitionInDays: 1
-              StorageClass: DEEP_ARCHIVE
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W51
-            reason: "Bucket does not need a bucket policy"
-
-  Destination:
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Type: AWS::S3::Bucket
-    Properties:
-      LoggingConfiguration:
-        DestinationBucketName: !Ref Logs
-        LogFilePrefix: s3-access/
-      CorsConfiguration:
-        CorsRules:
-          - AllowedMethods: [GET]
-            AllowedOrigins: ['*']
-            AllowedHeaders: ['*']
-            MaxAge: 3000
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-
-  Logs:
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Type: AWS::S3::Bucket
-    Properties:
-      AccessControl: LogDeliveryWrite
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W35
-            reason: "Used to store access logs for other buckets"
-          - id: W51
-            reason: "Bucket does not need a bucket policy"
-
   SnsTopic:
     Type: AWS::SNS::Topic
     Properties:
@@ -515,59 +432,13 @@ Resources:
       KmsDataKeyReusePeriodSeconds: 300
       KmsMasterKeyId: alias/aws/sqs
 
-  DestinationOriginAccessIdentity:
-    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
-    Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub "access-identity-${Destination}"
-
-  CloudFront:
-    Type: AWS::CloudFront::Distribution
-    Properties:
-      DistributionConfig:
-        Origins:
-          - DomainName: !Sub "${Destination}.s3.${AWS::Region}.amazonaws.com"
-            Id: vodS3Origin
-            S3OriginConfig:
-              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${DestinationOriginAccessIdentity}"
-        Enabled: true
-        Logging:
-          IncludeCookies: false
-          Bucket: !GetAtt Logs.DomainName
-          Prefix: cloudfront-logs/
-        DefaultCacheBehavior:
-          AllowedMethods:
-          - GET
-          - HEAD
-          Compress: true
-          MaxTTL: 0
-          MinTTL: 0
-          ViewerProtocolPolicy: "redirect-to-https"
-          DefaultTTL: 0
-          TargetOriginId: vodS3Origin
-          ForwardedValues:
-            QueryString: false
-            Cookies:
-              Forward: none
-            Headers:
-              - Origin
-              - Access-Control-Request-Method
-              - Access-Control-Request-Headers
-        PriceClass: PriceClass_100
-        ViewerCertificate:
-          CloudFrontDefaultCertificate: true
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W70
-            reason: "CloudFront automatically sets the security policy to TLSv1 when the distribution uses the CloudFront domain name (CloudFrontDefaultCertificate=true)"
-
   S3Config:
-    DependsOn: CloudFront
     Type: Custom::S3
     Properties:
       ServiceToken: !GetAtt CustomResource.Arn
-      Source: !Ref Source
+      Source:                  
+        Fn::ImportValue: 
+          !Sub "${SourceBucketStack}-BucketName"
       IngestArn: !GetAtt StepFunctions.Arn
       Resource: S3Notification
       WorkflowTrigger: !Ref WorkflowTrigger
@@ -596,7 +467,9 @@ Resources:
       StackName: !Ref AWS::StackName
       GroupId: !Sub "${AWS::StackName}-packaging-group"
       PackagingConfigurations: "HLS,DASH,MSS,CMAF"
-      DistributionId: !Ref CloudFront
+      DistributionId: 
+        Fn::ImportValue: 
+          !Sub "${DestinationBucketStack}-CloudfrontId"
       EnableMediaPackage: !Ref EnableMediaPackage
 
   CustomResource:
@@ -712,7 +585,11 @@ Resources:
                 Action:
                   - s3:GetObject
                 Resource:
-                  - !Sub "${Source.Arn}/*"
+                  - Fn::Sub:  
+                    - "${SourceBucketArn}/*"
+                    - SourceBucketArn: 
+                        Fn::ImportValue: 
+                          !Sub "${SourceBucketStack}-BucketArn"
               - Effect: Allow
                 Action:
                   - lambda:InvokeFunction
@@ -748,8 +625,12 @@ Resources:
           AWS_NODEJS_CONNECTION_REUSE_ENABLED: "1"
           ErrorHandler: !GetAtt ErrorHandler.Arn
           WorkflowName: !Ref AWS::StackName
-          Source: !Ref Source
-          Destination: !Ref Destination
+          Source: 
+            Fn::ImportValue: 
+              !Sub "${SourceBucketStack}-BucketName"
+          Destination: 
+            Fn::ImportValue: 
+              !Sub "${DestinationBucketStack}-BucketName"
           FrameCapture: !Ref FrameCapture
           ArchiveSource: !Ref Glacier
           MediaConvert_Template_2160p:
@@ -770,7 +651,9 @@ Resources:
           MediaConvert_Template_540p: !Sub "${AWS::StackName}_Ott_540p_Avc_Aac_16x9_qvbr_no_preset"
           MediaConvert_Template_360p: !Sub "${AWS::StackName}_Ott_360p_Avc_Aac_16x9_qvbr_no_preset"
           MediaConvert_Template_270p: !Sub "${AWS::StackName}_Ott_270p_Avc_Aac_16x9_qvbr_no_preset"
-          CloudFront: !GetAtt CloudFront.DomainName
+          CloudFront: 
+            Fn::ImportValue: 
+              !Sub "${DestinationBucketStack}-CloudfrontDomainName" 
           EnableMediaPackage: !Ref EnableMediaPackage
           InputRotate: DEGREE_0
           EnableSns: !Ref EnableSns
@@ -805,7 +688,11 @@ Resources:
                 Action:
                   - s3:GetObject
                 Resource:
-                  - !Sub "${Source.Arn}/*"
+                  - Fn::Sub:  
+                    - "${SourceBucketArn}/*"
+                    - SourceBucketArn: 
+                        Fn::ImportValue: 
+                          !Sub "${SourceBucketStack}-BucketArn"
               - Effect: Allow
                 Action:
                   - lambda:InvokeFunction
@@ -1081,7 +968,8 @@ Resources:
                 Action:
                   - s3:ListBucket
                 Resource:
-                  - !GetAtt Destination.Arn
+                  - Fn::ImportValue: 
+                      !Sub "${DestinationBucketStack}-BucketArn"
               - Effect: Allow
                 Action:
                   - logs:CreateLogGroup
@@ -1142,7 +1030,11 @@ Resources:
                 Action:
                   - s3:PutObjectTagging
                 Resource:
-                  - !Sub "${Source.Arn}/*"
+                 - Fn::Sub:  
+                      - "${SourceBucketArn}/*"
+                      - SourceBucketArn: 
+                          Fn::ImportValue: 
+                            !Sub "${SourceBucketStack}-BucketArn"
               - Effect: Allow
                 Action:
                   - lambda:InvokeFunction
@@ -1795,24 +1687,6 @@ Outputs:
     Value: !Ref DynamoDBTable
     Export:
       Name: !Join [":", [!Ref "AWS::StackName", DynamoDBTable]]
-
-  Source:
-    Description: Source Bucket
-    Value: !Ref Source
-    Export:
-      Name: !Join [":", [!Ref "AWS::StackName", Source]]
-
-  Destination:
-    Description: Destination Bucket
-    Value: !Ref Destination
-    Export:
-      Name: !Join [":", [!Ref "AWS::StackName", Destination]]
-
-  CloudFront:
-    Description: CloudFront Domain Name
-    Value: !GetAtt CloudFront.DomainName
-    Export:
-      Name: !Join [":", [!Ref "AWS::StackName", CloudFront]]
 
   UUID:
     Condition: Metrics

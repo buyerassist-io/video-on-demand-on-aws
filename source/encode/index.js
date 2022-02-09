@@ -130,7 +130,9 @@ exports.handler = async (event) => {
 
     try {
         const inputPath = `s3://${event.srcBucket}/${event.srcVideo}`;
-        const outputPath = `s3://${event.destBucket}/${event.srcVideo}`;
+        const regex = /^original\//
+        const outputKey = event.srcVideo.replace(regex, 'processed/')
+        const outputPath = `s3://${event.srcBucket}/${outputKey}`;
 
         // Baseline for the job parameters
         let job = {
