@@ -104,7 +104,7 @@ const getFrameGroup = (event, outputPath) => ({
             AntiAlias: 'ENABLED',
             CodecSettings: {
                 FrameCaptureSettings: {
-                    MaxCaptures: 10000000,
+                    MaxCaptures: 5,
                     Quality: 80,
                     FramerateDenominator: 5,
                     FramerateNumerator: 1
@@ -116,8 +116,8 @@ const getFrameGroup = (event, outputPath) => ({
     }]
 });
 //PR: https://github.com/awslabs/video-on-demand-on-aws/pull/107
-const mergeSettingsWithDefault = (originalGroup, customGroup) => {
-    return _.merge({}, originalGroup, customGroup);
+const mergeSettingsWithDefault = (originallGroup, customGroup) => {
+    return _.merge({}, originallGroup, customGroup);
 };
 
 exports.handler = async (event) => {
