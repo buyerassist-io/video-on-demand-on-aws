@@ -109,11 +109,14 @@ exports.handler = async (event) => {
     data.thumbNails = [];
     data.thumbNailsUrls = [];
 
+    const regex = /^original\//
+    const outputKey = data.srcVideo.replace(regex, 'processed/')
+
     params = {
       Bucket: data.destBucket,
-      Prefix: `${data.guid}/thumbnails/`,
+      Prefix: `${outputKey}/thumbnails/`,
     };
-
+    
     let thumbNails = await s3.listObjects(params).promise();
 
     if (thumbNails.Contents.length !=0) {

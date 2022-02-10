@@ -545,8 +545,8 @@ Resources:
       Handler: index.handler
       Role: !GetAtt StepFunctionsRole.Arn
       Code:
-        S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]]
-        S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"], "step-functions.zip"]]
+        S3Bucket: !FindInMap ["SourceCode", "Buyerassist", "S3Bucket"]
+        S3Key: !Join [ "/", [ !FindInMap ["SourceCode", "Buyerassist", "KeyPrefix"], "step-functions.zip"]]
       Runtime: nodejs12.x
       Timeout: 120
       Environment:
@@ -783,8 +783,8 @@ Resources:
       Handler: index.handler
       Role: !GetAtt DynamoUpdateRole.Arn
       Code:
-        S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]]
-        S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"], "dynamo.zip"]]
+        S3Bucket: !FindInMap ["SourceCode", "Buyerassist", "S3Bucket"]
+        S3Key: !Join [ "/", [ !FindInMap ["SourceCode", "Buyerassist", "KeyPrefix"], "dynamo.zip"]]
       Runtime: nodejs12.x
       Timeout: 120
       Environment:
@@ -991,8 +991,8 @@ Resources:
       Handler: index.handler
       Role: !GetAtt OutputValidateRole.Arn
       Code:
-        S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]]
-        S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"], "output-validate.zip"]]
+        S3Bucket: !FindInMap ["SourceCode", "Buyerassist", "S3Bucket"]
+        S3Key: !Join [ "/", [ !FindInMap ["SourceCode", "Buyerassist", "KeyPrefix"], "output-validate.zip"]]
       Runtime: nodejs12.x
       Timeout: 120
       Environment:
@@ -1061,8 +1061,8 @@ Resources:
       Handler: index.handler
       Role: !GetAtt ArchiveSourceRole.Arn
       Code:
-        S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]]
-        S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"], "archive-source.zip"]]
+        S3Bucket: !FindInMap ["SourceCode", "Buyerassist", "S3Bucket"]
+        S3Key: !Join [ "/", [ !FindInMap ["SourceCode", "Buyerassist", "KeyPrefix"], "archive-source.zip"]]
       Runtime: nodejs12.x
       Timeout: 120
       Environment:
@@ -1133,8 +1133,8 @@ Resources:
       Handler: index.handler
       Role: !GetAtt SqsSendMessageRole.Arn
       Code:
-        S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]]
-        S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"], "sqs-publish.zip"]]
+        S3Bucket: !FindInMap ["SourceCode", "Buyerassist", "S3Bucket"]
+        S3Key: !Join [ "/", [ !FindInMap ["SourceCode", "Buyerassist", "KeyPrefix"], "sqs-publish.zip"]]
       Runtime: nodejs12.x
       Timeout: 120
       Environment:
@@ -1202,8 +1202,8 @@ Resources:
       Handler: index.handler
       Role: !GetAtt SnsNotificationRole.Arn
       Code:
-        S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]]
-        S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"], "sns-notification.zip"]]
+        S3Bucket: !FindInMap ["SourceCode", "Buyerassist", "S3Bucket"]
+        S3Key: !Join [ "/", [ !FindInMap ["SourceCode", "Buyerassist", "KeyPrefix"], "sns-notification.zip"]]
       Runtime: nodejs12.x
       Timeout: 120
       Environment:
@@ -1271,8 +1271,8 @@ Resources:
       Handler: index.handler
       Role: !GetAtt MediaPackageAssetsRole.Arn
       Code:
-        S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]]
-        S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"], "media-package-assets.zip"]]
+        S3Bucket: !FindInMap ["SourceCode", "Buyerassist", "S3Bucket"]
+        S3Key: !Join [ "/", [ !FindInMap ["SourceCode", "Buyerassist", "KeyPrefix"], "media-package-assets.zip"]]
       Runtime: nodejs12.x
       Timeout: 300
       Environment:
@@ -1341,8 +1341,8 @@ Resources:
       Handler: index.handler
       Role: !GetAtt ErrorHandlerRole.Arn
       Code:
-        S3Bucket: !Join ["-", [!FindInMap ["SourceCode", "General", "S3Bucket"], Ref: "AWS::Region"]]
-        S3Key: !Join ["/", [!FindInMap ["SourceCode", "General", "KeyPrefix"], "error-handler.zip"]]
+        S3Bucket: !FindInMap ["SourceCode", "Buyerassist", "S3Bucket"]
+        S3Key: !Join [ "/", [ !FindInMap ["SourceCode", "Buyerassist", "KeyPrefix"], "error-handler.zip"]]
       Runtime: nodejs12.x
       Timeout: 120
       Environment:
