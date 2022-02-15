@@ -1,0 +1,63 @@
+name: 'deployments-dev'
+on:
+    workflow_dispatch:
+      inputs:
+        stage:
+          description: 'stage [local,dev,prod]'
+          required: true
+          default: 'local'
+          type: choice
+          options: 
+            - local
+            - dev
+            - prod
+        releasetype:
+          description: 'select the release type'
+          required: true
+          type: choice
+          options: 
+            - major
+            - minor
+            - patch
+
+jobs:
+  deploy:
+    environment: ${{ github.event.inputs.stage }}
+    name: deployments
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Fetch the last release tag
+        run: |
+          old-version=$(git describe --tags --abbrev=0 --match v*)
+          chmod +x ./deployment/version-update.sh
+          new-version="$(bash ./deployment/version-update.sh $old-version ${{ github.event.inputs.releasetype }} )" >> $GITHUB_ENV
+
+      - name: Create deployment package
+        run: |
+          chmod +x ./deployment/build-s3-dist.sh
+          ./deployment/build-s3-dist.sh public.dev.buyerassist.io video-on-demand-on-aws ${{ env.new-version }}
+      
+      - name: Copy the content to the S3 bucket
+        run: aws s3 cp ./regional-s3-assets/ s3://public.dev.buyerassist.io/video-on-demand-on-aws/${{ env.new-version }}/ --recursive --acl bucket-owner-full-control
+
+      - name: Deploy to AWS CloudFormation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: media-bucket-dev
+          template: https://public.dev.buyerassit.io.s3.us-east-2.amazonaws.com/video-on-demand-on-aws/${{ env.new-version }}/video-on-demand-on-aws.template
+          parameter-overrides: "SourceBucketStack=content-bucket-dev,DestinationBucketStack=content-bucket-dev"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ env.new-version }}
+          release_name: Release ${{ env.new-version }}
