@@ -1,0 +1,54 @@
+name: 'build'
+on:
+    workflow_dispatch:
+      inputs:
+        releasetype:
+          description: 'select the release type'
+          required: true
+          type: choice
+          options: 
+            - major
+            - minor
+            - patch
+jobs:
+  build:
+    name: deployments
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Fetch the last release tag
+        run: |
+          oldversion=$(git describe --tags --abbrev=0 --match v*)
+          chmod +x ./deployment/version-update.sh
+          echo "newversion=$(bash ./deployment/version-update.sh $oldversion ${{ github.event.inputs.releasetype }} )" >> $GITHUB_ENV
+
+      - name: Fetch new AWS Version
+        run: echo awsversion=$(echo ${{ env.newversion }} | sed -e 's/[a-z]//g' -e 's/ //g') >> $GITHUB_ENV
+
+      - name: Configure AWS for fetching S3 data and putting it back
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.S3_POLICY_KEY}} --profile s3fetch
+          aws configure set aws_secret_access_key ${{ secrets.S3_POLICY_SECRET }} --profile s3fetch
+
+      - name: Create deployment package
+        run: |
+          chmod +x ./deployment/build-s3-dist.sh
+          ./deployment/build-s3-dist.sh ${{ secrets.S3_BUCKET }} video-on-demand-on-aws ${{ env.awsversion }}
+      
+      - name: Copy the content to the S3 bucket and make the object public.
+        run: |
+          aws s3 cp ./regional-s3-assets/ s3://${{ secrets.S3_BUCKET }}/video-on-demand-on-aws/${{ env.awsversion }}/ --recursive --acl bucket-owner-full-control --profile s3fetch
+          aws s3api put-object-acl --bucket ${{ secrets.S3_BUCKET }} --key video-on-demand-on-aws/${{ env.awsversion }}/video-on-demand-on-aws.template --acl public-read --profile s3fetch
+      
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ env.newversion }}
+          release_name: ${{ env.newversion }}

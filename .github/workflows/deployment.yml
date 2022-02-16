@@ -1,0 +1,43 @@
+name: 'deploy'
+on:
+    workflow_dispatch:
+      inputs:
+        stage:
+          description: 'stage [local,dev,prod]'
+          required: true
+          default: 'local'
+          type: choice
+          options: 
+            - local
+            - dev
+            - prod
+        release_version:
+          description: 'Enter the release version'
+          required: true
+      
+jobs:
+  deploy:
+    environment: ${{ github.event.inputs.stage }}
+    name: deployments
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Check if the release given exists or not
+        run: |
+         if [[ $(echo $(git describe --tags --abbrev=0 --match ${{ github.event.inputs.release_version }} )) == '' ]]; then echo "Invalid release version, please check and enter the correct release version";  exit 0 ; fi
+
+      - name: Fetch new AWS Version
+        run: echo awsversion=$(echo ${{ github.event.inputs.release_version }} | sed -e 's/[a-z]//g' -e 's/ //g') >> $GITHUB_ENV
+
+      - name: Deploy to AWS CloudFormation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: media-bucket-${{ github.event.inputs.stage }}
+          template: https://s3.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.S3_BUCKET }}/video-on-demand-on-aws/${{ env.awsversion }}/video-on-demand-on-aws.template
+          parameter-overrides: "SourceBucketStack=content-bucket-${{ github.event.inputs.stage }},DestinationBucketStack=content-bucket-${{ github.event.inputs.stage }}"
