@@ -12,7 +12,6 @@ on:
             - patch
 jobs:
   build:
-    if: ${{ github.event.inputs.build == 'true' }}
     name: deployments
     runs-on: ubuntu-latest
     env:
