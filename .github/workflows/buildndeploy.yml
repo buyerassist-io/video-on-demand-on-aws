@@ -47,8 +47,9 @@ jobs:
       
       - name: Create deployment package
         run: |
-          chmod +x ./deployment/build-s3-dist.sh
-          ./deployment/build-s3-dist.sh ${{ secrets.S3_BUCKET }} video-on-demand-on-aws ${{ env.newversion }}
+          cd ./deployment
+          chmod +x ./build-s3-dist.sh
+          ./build-s3-dist.sh ${{ secrets.S3_BUCKET }} video-on-demand-on-aws ${{ env.newversion }}
       
       - name: Copy the content to the S3 bucket and make the object public.
         run: |
