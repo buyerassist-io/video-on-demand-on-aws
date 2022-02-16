@@ -31,6 +31,8 @@ jobs:
       S3_BUCKET: ${{ secrets.S3_BUCKET }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Fetch the last release tag
         run: |
