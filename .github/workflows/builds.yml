@@ -12,13 +12,15 @@ on:
             - patch
 jobs:
   build:
-    name: deployments
+    name: build
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       S3_BUCKET: ${{ secrets.S3_BUCKET }}
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       
       - name: Fetch the last release tag
         run: |
